@@ -19,7 +19,7 @@ class MercadoBitCoin(ABC):
 
     def get_data(self,**kwargs) -> dict:
         endpoint = self._get_endpoint(**kwargs)
-        logger.info("Getting data from endpoinr: {endpoint}")
+        logger.info("Getting data from endpoint: {endpoint}")
         response = requests.get(endpoint)
         response.raise_for_status()
         return response.json()
@@ -33,7 +33,33 @@ class DaySummaryApi(MercadoBitCoin):
         return f"{self.endpoint}/{self.coin}/{self.type}/{date.year}/{date.month}/{date.day}"
     
 
-print( DaySummaryApi(coin="BTC").get_data(date=datetime.date(2023, 1, 20)))
+
+class TradesApi(MercadoBitCoin):
+
+    type = "trades"
+
+    def _get_unix_epoch( self, date: datetime) -> int:
+        return int(date.timestamp())
+
+
+    def _get_endpoint(self, date_from: datetime = None, date_to: datetime = None ) -> str:
+
+
+        if date_from and not date_to : 
+            date_from_unix = self._get_unix_epoch(date_from)
+
+            endpoint = f"{self.endpoint}/{self.coin}/{self.type}/{date_from_unix}"
+        elif date_from and date_to:
+            date_from_unix = self._get_unix_epoch(date_from)
+            date_to_unix = self._get_unix_epoch(date_to)
+            endpoint = f"{self.endpoint}/{self.coin}/{self.type}/{date_from_unix}/{date_to_unix}"
+
+        else:
+            endpoint = f"{self.endpoint}/{self.coin}/{self.type}"
+
+        return endpoint
+
+
 
 
 
